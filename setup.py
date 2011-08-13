@@ -8,7 +8,7 @@ setup(
     author_email='srobertson@codeit.com',
     #package_dir = {'': 'src'},
     packages = find_packages(),
-    install_requires = ['Rambler']
+    install_requires = ['Rambler', 'webob']
     
 
 )
