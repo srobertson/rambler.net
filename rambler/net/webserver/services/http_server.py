@@ -227,7 +227,7 @@ class HTTPServer(object):
         #del self.requests[port]
 
   def onClose(self, port):
-    self.log.info('%s closed' % port)
+    self.log.debug('%s closed' % port)
     if self.requests.has_key(port):
       del self.requests[port]
       
