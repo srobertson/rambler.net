@@ -19,6 +19,7 @@ from Rambler import outlet
 
     
 serializer=kid.HTMLSerializer()
+serializer.doctype = None
 class WebController(object):
   scheduler = outlet('Scheduler')
   Session = outlet('Session')
