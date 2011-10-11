@@ -109,6 +109,7 @@ class HTTPServer(object):
              'SERVER_NAME': server_name,
              'SERVER_PORT': str(server_port),
          'SERVER_PROTOCOL': server_protocol,
+         'rambler.port' : port
             } 
       self.requests[port] = Request.blank(uri, environ=environ)
       return
