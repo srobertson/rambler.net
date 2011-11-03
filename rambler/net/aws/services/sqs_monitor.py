@@ -345,7 +345,7 @@ class SQSMonitor(object):
       'Action': action,
       'SignatureVersion': '1',
       'Version': '2008-01-01',
-      'Timestamp': datetime.now().isoformat()
+      'Timestamp': datetime.utcnow().isoformat()
     }
     
     for k,v in kw.items():

@@ -25,8 +25,25 @@ class URLHTTPProtocol(URLProtocol):
   def assembled(cls):
     cls.needs_registration = True
     cls.needs_perform = False
+    pycurl.global_init(pycurl.GLOBAL_ALL)
     cls.multi = pycurl.CurlMulti()
+    cls.multi.setopt(pycurl.M_TIMERFUNCTION, cls.curl_timeout)
+    cls.multi.setopt(pycurl.M_SOCKETFUNCTION, cls.on_socket)
     cls.instances = {}
+
+  @classmethod
+  def on_socket(cls, event, fd, multi, data):
+    import pdb; pdb.set_trace()
+    print 'on_socket ============', event, fd, multi, data
+    if event == pycurl.POLL_REMOVE:
+      pass
+    else:
+      pass
+      
+  @classmethod
+  def curl_timeout(cls, msecs):
+    cls.run_loop.currentRunLoop().waitBeforeCalling(msecs/100.0, cls.perform)
+
     
   @classmethod
   def canInitWithRequest(cls, request):
@@ -37,9 +54,9 @@ class URLHTTPProtocol(URLProtocol):
   def queue(cls, instance, handle):
     cls.instances[handle] = instance
     cls.multi.add_handle(handle)
+    #cls.multi.socket_action(pycurl.SOCKET_TIMEOUT, 0)
     cls.perform()
-    #cls.multi.perform()
-    #cls.register_if_needed()
+
     
   @classmethod
   def perform_if_needed(cls):
@@ -51,6 +68,7 @@ class URLHTTPProtocol(URLProtocol):
   def perform(cls):
     m = cls.multi
     cls.needs_perform = True
+
     while 1:
       ret, num_handles = m.perform()
       if ret != pycurl.E_CALL_MULTI_PERFORM: break
@@ -59,6 +77,7 @@ class URLHTTPProtocol(URLProtocol):
     while cont:
       cont, success, errors = m.info_read()
       for handle in success:
+        
         i = cls.instances.pop(handle)
         m.remove_handle(handle)
         if i.response is not None:
@@ -91,6 +110,7 @@ class URLHTTPProtocol(URLProtocol):
     run_loop = cls.run_loop.currentRunLoop()
     
     readers, writers, errors = cls.multi.fdset()
+    
     for r in readers:
       run_loop.addReader(Source(r))
       
@@ -123,6 +143,7 @@ class URLHTTPProtocol(URLProtocol):
     else:
       header, value = line.split(':',1)
       self.response.headers[header.lower()] = value.strip()
+
     
   def on_data(self, data):
     self.client.didLoadData(self, data)
@@ -132,9 +153,10 @@ class URLHTTPProtocol(URLProtocol):
 
     
   def startLoading(self):
+    #import pdb; pdb.set_trace()
     if self.cached_response is None:
       c = pycurl.Curl()
-
+      c.setopt(pycurl.NOSIGNAL, 1) 
       c.setopt(pycurl.URL, str(self.request.url))
       #c.setopt(pycurl.DNS_USE_GLOBAL_CACHE, 1)
       #c.setopt(pycurl.DNS_CACHE_TIMEOUT, -1)
@@ -143,7 +165,6 @@ class URLHTTPProtocol(URLProtocol):
 
       c.setopt(pycurl.HEADERFUNCTION, self.on_header)
       c.setopt(pycurl.WRITEFUNCTION, self.on_data)
-      
       c.setopt(pycurl.VERBOSE, int(self.verbose))
       c.setopt(pycurl.DEBUGFUNCTION, self.on_debug)
       
@@ -153,7 +174,8 @@ class URLHTTPProtocol(URLProtocol):
       headers = []
       for header, value in request.HTTPHeaders.items():
         headers.append('%s:%s' % (header, value))
-
+      headers.append("Expect:")
+      
       c.setopt(pycurl.HTTPHEADER, headers)
 
       if request.HTTPBody:

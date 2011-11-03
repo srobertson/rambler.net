@@ -109,6 +109,7 @@ class HTTPServer(object):
              'SERVER_NAME': server_name,
              'SERVER_PORT': str(server_port),
          'SERVER_PROTOCOL': server_protocol,
+         'rambler.port' : port
             } 
       self.requests[port] = Request.blank(uri, environ=environ)
       return
@@ -195,7 +196,7 @@ class HTTPServer(object):
       response.headers['Connection'] = request.environ.get('HTTP_CONNECTION')
       
     try:
-      port.write('%s %s\r\n' % (response.environ['SERVER_PROTOCOL'], response.status))
+      port.write('%s %s\r\n' % (request.environ['SERVER_PROTOCOL'], response.status))
 
       for header in response.headerlist:
         port.write('%s: %s\r\n' % header)
@@ -212,7 +213,7 @@ class HTTPServer(object):
       # length so that we can keep the connection open
       # TODO: Add better method for closing the port
       info = response.environ.copy()
-      info['STATUS'] = response.status_int
+      info['STATUS'] = request.status_int
       self.log.info('%(REMOTE_ADDR)s %(REQUEST_METHOD)s %(HTTP_HOST)s%(PATH_INFO)s %(STATUS)s' % info)
       
       if request.environ['SERVER_PROTOCOL'] == 'HTTP/1.0':
@@ -227,7 +228,7 @@ class HTTPServer(object):
         #del self.requests[port]
 
   def onClose(self, port):
-    self.log.info('%s closed' % port)
+    self.log.debug('%s closed' % port)
     if self.requests.has_key(port):
       del self.requests[port]
       

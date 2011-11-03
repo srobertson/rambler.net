@@ -9,6 +9,4 @@ setup(
     #package_dir = {'': 'src'},
     packages = find_packages(),
     install_requires = ['Rambler', 'webob', 'routes','kid']
-    
-
 )

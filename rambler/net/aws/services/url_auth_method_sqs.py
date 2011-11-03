@@ -27,7 +27,7 @@ class URLAuthMethodSQS(object):
             'SignatureVersion': '1',
             #'SignatureMethod': 'HmacSHA256',
             'Version': '2008-01-01',
-            'Timestamp':  datetime.now().isoformat()
+            'Timestamp':  datetime.utcnow().isoformat()
             } 
     if request.HTTPMethod == 'GET':
       # user the

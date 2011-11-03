@@ -28,3 +28,6 @@ class Session(component('Entity')):
   def get(self, *args, **kw):
     return self.key_vals.get(*args, **kw)
   
+  def clear(self):
+    # Clear all session values
+    self.key_vals.clear()
