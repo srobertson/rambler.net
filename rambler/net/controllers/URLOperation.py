@@ -86,6 +86,7 @@ class URLOperation(component('Operation')):
   def did_receive_response(self, connection, response):
     connection.user_info['code'] = getattr(response, 'statusCode', 200)
     self.code = connection.user_info['code']
+    self.response = response
 
   def did_receive_data(self, connection, data):
     self.tempfile.write(data)
