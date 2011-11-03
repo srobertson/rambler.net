@@ -213,7 +213,7 @@ class HTTPServer(object):
       # length so that we can keep the connection open
       # TODO: Add better method for closing the port
       info = request.environ.copy()
-      info['STATUS'] = request.status_int
+      info['STATUS'] = response.status_int
       self.log.info('%(REMOTE_ADDR)s %(REQUEST_METHOD)s %(HTTP_HOST)s%(PATH_INFO)s %(STATUS)s' % info)
       
       if request.environ['SERVER_PROTOCOL'] == 'HTTP/1.0':
