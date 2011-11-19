@@ -35,7 +35,9 @@ class URLRamblerProtocol(URLProtocol):
     if path.startswith('//'):
       path = path[2:]
   
-    app_or_ext, path = path.split('/',1)#[2:]
+    #app_or_ext, path = path.split('/',1)#[2:]
+    path = self.request.url.path
+    app_or_ext = self.request.url.host
     mime_type, encoding = mimetypes.guess_type(path)
 
     path = pkg_resources.resource_filename(app_or_ext, path)

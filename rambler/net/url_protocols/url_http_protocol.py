@@ -33,8 +33,6 @@ class URLHTTPProtocol(URLProtocol):
 
   @classmethod
   def on_socket(cls, event, fd, multi, data):
-    import pdb; pdb.set_trace()
-    print 'on_socket ============', event, fd, multi, data
     if event == pycurl.POLL_REMOVE:
       pass
     else:

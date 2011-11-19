@@ -37,7 +37,7 @@ class URLRequest(object):
   def _set_HTTPBody(self, body):
     if self._bodyStream is None:
       self._body = body
-      self.HTTPHeaders['Content-length'] = len(body)
+      self.HTTPHeaders['content-length'] = len(body)
     else:
       raise RuntimeError('HTTPBodyStream has already been set.')
       

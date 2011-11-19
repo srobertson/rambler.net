@@ -18,11 +18,28 @@ class URLOperation(component('Operation')):
   
   @classmethod
   def assembled(cls):
-    cls.rebase()  
-    
-  def __init__(self, url_pattern, *args, **kw):
+    cls.rebase()    
+
+  @classmethod
+  def post(cls, url, body):
+    return cls(url, 'POST', body)
+  
+  @classmethod
+  def put(cls, url, body):
+    op = cls(url, 'PUT', body)
+    return op
+
+  def __init__(self, url_pattern, method='GET', *args, **kw):
     self.tempfile = None
     self.substitutions = {}
+    request = self.request = self.URLRequest(url_pattern)
+    request.HTTPMethod = method
+    if len(args):
+      body = args[0]
+      if hasattr(body, 'read'):
+        request.HTTPBodyStream = args[0]
+      else:
+        request.HTTPBody = args[0]
     self.url_pattern = url_pattern
     super(URLOperation, self).__init__()
     
@@ -57,8 +74,7 @@ class URLOperation(component('Operation')):
     self.tempfile = tempfile.SpooledTemporaryFile(max_size=1024)
     
     try:
-      request = self.URLRequest(self.url)
-      self.URLConnection.connectionWithRequest(request, self)
+      self.URLConnection.connectionWithRequest(self.request, self)
     except Exception, e:
       self.did_fail_with_error(None, e)
       
@@ -96,7 +112,7 @@ class URLOperation(component('Operation')):
     
     code = connection.user_info.pop('code')
     
-    self.log.info('%s %s', connection.request.url, code)    
+    self.log.info('%s %s %s', connection.request.HTTPMethod, connection.request.url, code)    
     if not self.is_cancelled and code != 200:
       self.tempfile.seek(0)
       self.log.info(self.tempfile.read())
