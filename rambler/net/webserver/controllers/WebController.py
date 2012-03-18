@@ -166,8 +166,9 @@ class WebController(object):
         # Missing session provide a new one
         pass
 
-    session  = self.Session.create()
-    yield session.save
+    session  = yield self.Session.create()
+
+    #yield session.save
 
     self.response.set_cookie('session-id',session.id)
       

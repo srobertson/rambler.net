@@ -175,7 +175,7 @@ class HTTPServer(object):
       self.log.exception('Unexpected Exception encountered while attempting to locate a handler for %s', request.path_info)
       #request.startResponse('500 Unexpeted',(('Content-type', 'text/plain'),),exc_info)
       response = HTTPServerError(detail="".join(traceback.format_exception(*exc_info)), request=request)
-      response.body = response.html_body(request.environ)
+      response.text = response.html_body(request.environ)
       
 
     # Valid responses are either WSGI Apps, Tuples or of instances Responses
@@ -186,7 +186,7 @@ class HTTPServer(object):
         exc_info = sys.exc_info()
         self.log.exception('Unexpected Exception encountered in coroutine %s', request.path_info)
         response = HTTPServerError(detail="<br/>\n".join(traceback.format_exception(*exc_info)), request=request)
-        response.body = response.html_body(request.environ)
+        response.text = response.html_body(request.environ)
 
           
     elif not isinstance(response, Response):
