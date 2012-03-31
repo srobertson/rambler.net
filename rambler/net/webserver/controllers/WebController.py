@@ -14,7 +14,7 @@ except ImportError:
   import simplejson as json
 
 from rambler.net.webserver import erbtemplate
-from Rambler import outlet
+from Rambler import outlet,coroutine
 
 
     
@@ -55,24 +55,30 @@ class WebController(object):
     if not callable(filter):
       filter = filter.filter
     cls.filter_chain.append(filter)
-    
+  
+  @coroutine  
   def process(self):
     for filter in self.filter_chain:
-      cont = yield (self.scheduler.call, filter, self)
+      cont = yield filter(self) #(self.scheduler.call, filter, self)
       # Note filters must return the False 'object' not a false value, to stop filtering.
       if cont is False or self.rendered:
-        raise StopIteration(self.response)
+        yield self.response
+        return
+
     
     action = self.action
     actionMethod = getattr(self, action)
     if(actionMethod):
-      yield self.scheduler.call, actionMethod      
+      yield actionMethod()#self.scheduler.call, actionMethod      
       
       if not self.rendered:
         self.render()
         
     if self.rendered:
-      raise StopIteration(self.response)
+      yield self.response
+    else:
+      yield None
+      #raise StopIteration(self.response)
       
 
   def render(self, **kw):
@@ -154,25 +160,23 @@ class WebController(object):
 
   def render_missing_template(self):
     self.response.body = 'Missing template for action %s' % self.action
-    
+  
+  @coroutine  
   def session(self):
     session_id = self.request.cookies.get('session-id')
 
     if session_id:
       try:
-        session = yield(self.Session.find,session_id)
-        raise StopIteration(session)
+        session = yield self.Session.find(session_id)
+        return
       except KeyError:
         # Missing session provide a new one
         pass
 
     session  = yield self.Session.create()
-
-    #yield session.save
-
     self.response.set_cookie('session-id',session.id)
+
       
-    raise StopIteration(session)
         
   @property
   def params(self):

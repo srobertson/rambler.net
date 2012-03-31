@@ -6,7 +6,7 @@ from StringIO import StringIO
 from webob import Request, Response
 from webob.exc import HTTPServerError, HTTPNotFound
 
-from Rambler import outlet, option
+from Rambler import outlet, option, coroutine
 
 class HTTPServer(object):
   """Listens on a port for HTTP Request and dispatches them to WSGI
@@ -23,6 +23,7 @@ class HTTPServer(object):
   lineProtocol     = outlet('LineReceiverProtocol')
   log      = outlet('LogService')
   requestHandler = outlet('HTTPRequestMapper')
+  Operation = outlet('Operation')
   scheduler = outlet('Scheduler')
 
   listenAddress    = option('http', 'listenAddress', '') # defaults to all addresses
@@ -158,8 +159,11 @@ class HTTPServer(object):
     # This is a an experimental integration with the coroutine scheduler, now wsgi
     # apps can return data or a method they need running
     del self.requests[port]
-    self.scheduler.call(self._handleRequest, request, port)
+    op = self._handleRequest(request,port)
+    self.scheduler.queue.add_operation(op)
+    #self.scheduler.call(self._handleRequest, request, port)
 
+  @coroutine
   def _handleRequest(self, request, port):
     """Called by onLineFrom or onRawDataFrom to notify us that the Request
     has been fully read and we can begin processing it."""
@@ -171,17 +175,20 @@ class HTTPServer(object):
       # We got an error while trying to to find a wsgi
       # application to handle the request, log it and try to
       # report something useful to the user.
+      
+      
       exc_info = sys.exc_info()
       self.log.exception('Unexpected Exception encountered while attempting to locate a handler for %s', request.path_info)
       #request.startResponse('500 Unexpeted',(('Content-type', 'text/plain'),),exc_info)
       response = HTTPServerError(detail="".join(traceback.format_exception(*exc_info)), request=request)
       response.text = response.html_body(request.environ)
+      del exc_info
       
 
-    # Valid responses are either WSGI Apps, Tuples or of instances Responses
-    if isinstance(response,tuple):
+    # Valid responses are either WSGI Apps, Operation or of instances Responses
+    if isinstance(response,self.Operation):
       try:
-        response = yield (self.scheduler.call,)  + response
+        response = yield response #yield (self.scheduler.call,)  + response
       except Exception, e:
         exc_info = sys.exc_info()
         self.log.exception('Unexpected Exception encountered in coroutine %s', request.path_info)

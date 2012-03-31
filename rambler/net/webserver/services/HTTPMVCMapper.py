@@ -61,7 +61,8 @@ class HTTPMVCMapper(object):
       if hasattr(controller, action):
         controller.app = self.app
         controller.action = action    
-        return (controller.process,) 
+        #return (controller.process,) 
+        return controller.process()
     
   def handleHTTPRequest(self, request, startResponse):
     return None
