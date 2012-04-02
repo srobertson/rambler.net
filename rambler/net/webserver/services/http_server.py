@@ -169,7 +169,9 @@ class HTTPServer(object):
     has been fully read and we can begin processing it."""
 
     try:
-      response = self.requestHandler.findHandlerFor(request)        
+      response = yield self.requestHandler.findHandlerFor(request)
+    except HTTPNotFound, e:
+      response = e
     except:
 
       # We got an error while trying to to find a wsgi
