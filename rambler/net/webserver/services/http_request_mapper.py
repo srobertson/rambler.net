@@ -22,7 +22,7 @@ class  HTTPRequestMapper(object):
     if handler:
       response = yield handler.dispatch(request)
       return #response
-      
+    
     for priority, handler in self.handlers:
       response = yield handler.dispatch(request)
       if response is not None:

@@ -173,11 +173,9 @@ class HTTPServer(object):
     except HTTPNotFound, e:
       response = e
     except:
-
       # We got an error while trying to to find a wsgi
       # application to handle the request, log it and try to
       # report something useful to the user.
-      
       
       exc_info = sys.exc_info()
       self.log.exception('Unexpected Exception encountered while attempting to locate a handler for %s', request.path_info)
